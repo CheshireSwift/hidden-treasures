@@ -1,17 +1,22 @@
 module TextAdventure
-  Tale = Struct.new(:title, :sections, :introduction)
+  Tale = Struct.new(:title, :sections) do
+    def introduction
+      self.sections[:intro]
+    end
+  end
   SectionData = Struct.new(:title, :text, :choices)
 
   class << self
-    attr_accessor :tale
+    attr_reader :tale
   end
 
-  @tale = Tale.new(nil, Hash.new, nil)
+  def self.begin_tale(title)
+    @tale = TextAdventure::Tale.new(title, Hash.new)
+  end
 end
 
 def Introduction(text)
-  TextAdventure.tale.introduction = TextAdventure::SectionData.new(:intro, text, {})
-  Section TextAdventure.tale.introduction
+  Section TextAdventure::SectionData.new(:intro, text, {})
 end
 
 def Section(section)
@@ -19,20 +24,40 @@ def Section(section)
   TextAdventure.tale.sections[@the_section.title] = @the_section if @the_section
 end
 
-def to(arg1, arg2)
-  { arg1 => arg2.values.first }
+def to(action=:self_titled, sought)
+  if action == :self_titled
+    action = "#{sought.keys.first} #{sought.values.first}"
+  end
+  { action => sought.values.first }
 end
 
 def Choose(choice)
   @the_section.choices.merge! choice
 end
 
-def ends(text)
-  :end
+def ends(tale_name)
+  [:end, tale_name]
 end
 
-def Thus(action)
-  @the_section.choices = action
+def begins(tale_name)
+  [:begin, tale_name]
+end
+
+def So(action_tale_tuple)
+  handle_tale_action(action_tale_tuple)
+end
+
+def Thus(action_tale_tuple)
+  handle_tale_action(action_tale_tuple)
+end
+
+def handle_tale_action(action_tale_tuple)
+  case action_tale_tuple[0]
+    when :end
+      @the_section.choices = :end
+    when :begin
+      TextAdventure.begin_tale action_tale_tuple[1]
+  end
 end
 
 class String
@@ -40,4 +65,3 @@ class String
     return TextAdventure::SectionData.new(self, text, {})
   end
 end
-
