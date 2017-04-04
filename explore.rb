@@ -27,6 +27,7 @@ class MyApplication
         
         require File.join(Dir.pwd, file)
         
+        say "\e[H\e[2J"
         say "Now reading '#{TextAdventure.tale.title}'"
         say 'Press Enter to begin...'
         $stdin.getc
